@@ -10,7 +10,8 @@ jobs:
     steps:
       - checkout
       - aws-cli/setup
-      - terraform/install
+      - terraform/install:
+          terraform_version: 0.14.0
       - terraform/init
       - terraform/plan
   plan-apply:
