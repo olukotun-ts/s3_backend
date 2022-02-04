@@ -1,84 +1,26 @@
+# Use the latest 2.1 version of CircleCI pipeline process engine.
+# See: https://circleci.com/docs/2.0/configuration-reference
 version: 2.1
 
-orbs:
-  aws-cli: circleci/aws-cli@2.0.3
-  terraform: circleci/terraform@3.0.0
-
+# Define a job to be invoked later in a workflow.
+# See: https://circleci.com/docs/2.0/configuration-reference/#jobs
 jobs:
-  configure-aws:
-    executor: aws-cli/default
-    steps:
-      - checkout
-      - aws-cli/setup
-      - terraform/install:
-          terraform_version: 0.14.0
-      - terraform/init
-      - terraform/plan
-  plan-apply:
+  say-hello:
+    # Specify the execution environment. You can specify an image from Dockerhub or use one of our Convenience Images from CircleCI's Developer Hub.
+    # See: https://circleci.com/docs/2.0/configuration-reference/#docker-machine-macos-windows-executor
     docker:
-      - image: terraform/default
+      - image: cimg/base:stable
+    # Add steps to the job
+    # See: https://circleci.com/docs/2.0/configuration-reference/#steps
     steps:
       - checkout
       - run:
-          name: terraform init & plan
-          command: |
-            terraform init -input=false
-            terraform plan -out tfapply
-      - persist_to_workspace:
-          root: .
-          paths:
-            - .
-  apply:
-    docker:
-      - image: terraform/default
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          name: terraform
-          command: |
-            terraform apply -auto-approve tfapply
-      - persist_to_workspace:
-          root: .
-          paths:
-            - .
-  plan-destroy:
-    docker:
-      - image: terraform/default
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          name: terraform create destroy plan
-          command: |
-            terraform plan -destroy -out tfdestroy
-      - persist_to_workspace:
-          root: .
-          paths:
-            - .
-  destroy:
-    docker:
-      - image: terraform/default
-    steps:
-      - attach_workspace:
-          at: .
-      - run:
-          name: terraform destroy
-          command: |
-            terraform apply -auto-approve tfdestroy
+          name: "Say hello"
+          command: "echo Hello, World!"
 
+# Invoke jobs via workflows
+# See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
-  version: 2
-  plan_approve_apply:
+  say-hello-workflow:
     jobs:
-      - configure-aws
-      - plan-apply
-      - terraform/validate:
-          checkout: true
-          requires:
-            - configure-aws
-      - terraform/plan:
-          checkout: true
-          persist-workspace: true
-          requires:
-            - terraform/validate
+      - say-hello
